@@ -2,8 +2,8 @@ import { useState, useRef } from "react";
 
 const PLANS = [
   { id: "starter", name: "Starter", price: 9, sites: 3, desc: "Perfect to get started" },
-  { id: "pro",     name: "Pro",     price: 29, sites: 20, desc: "For growing businesses" },
-  { id: "agency",  name: "Agency",  price: 79, sites: 999, desc: "Unlimited power" },
+  { id: "pro", name: "Pro", price: 29, sites: 20, desc: "For growing businesses" },
+  { id: "agency", name: "Agency", price: 79, sites: 999, desc: "Unlimited power" },
 ];
 
 const SITE_TEMPLATES = [
@@ -32,8 +32,8 @@ export default function App() {
   const handleGenerate = () => { if (sitesLeft > 0) setSitesLeft(s => s - 1); };
 
   if (screen === "landing") return <Landing onGetStarted={() => setScreen("login")} />;
-  if (screen === "login")   return <Login onLogin={handleLogin} />;
-  if (screen === "plans")   return <Plans plans={PLANS} onSelect={handleSelectPlan} />;
+  if (screen === "login") return <Login onLogin={handleLogin} />;
+  if (screen === "plans") return <Plans plans={PLANS} onSelect={handleSelectPlan} />;
   if (screen === "builder") return <Builder user={user} plan={plan} sitesLeft={sitesLeft} onGenerate={handleGenerate} onUpgrade={() => setScreen("plans")} />;
 }
 
