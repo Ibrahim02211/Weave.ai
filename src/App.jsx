@@ -263,4 +263,3 @@ function btnStyle(variant) {
   if (variant==="ghost") return { ...base, background:"rgba(255,255,255,0.05)", color:"#f0ede8" };
   return base;
 }
-
