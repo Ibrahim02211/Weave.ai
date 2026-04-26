@@ -19,14 +19,12 @@ const LOADING_MSGS = [
   "Almost done…",
 ];
 
-const GROQ_API_KEY = "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";
-
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 export default function App() {
   const [screen, setScreen] = useState("landing");
-  const [user, setUser]     = useState(null);
-  const [plan, setPlan]     = useState(null);
+  const [user, setUser] = useState(null);
+  const [plan, setPlan] = useState(null);
   const [sitesLeft, setSitesLeft] = useState(0);
 
   const handleSelectPlan = (p) => { setPlan(p); setSitesLeft(p.sites); setScreen("builder"); };
@@ -56,6 +54,23 @@ function Landing({ onGetStarted }) {
         </p>
         <button onClick={onGetStarted} style={{ ...btnStyle("primary"), padding:"18px 48px", fontSize:"17px" }}>Start Building Free →</button>
       </div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1px", background:"rgba(255,255,255,0.06)", borderTop:"1px solid rgba(255,255,255,0.06)", margin:"0 48px" }}>
+        {[
+          { icon:"⚡", title:"Instant Generation", desc:"Full websites in under 10 seconds" },
+          { icon:"🎨", title:"Beautiful by Default", desc:"Professional designs, every time" },
+          { icon:"📦", title:"Export Anywhere", desc:"Clean HTML code ready to use" },
+        ].map(f => (
+          <div key={f.title} style={{ padding:"48px 40px", background:"#0a0a0f", borderRight:"1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize:"32px", marginBottom:"16px" }}>{f.icon}</div>
+            <div style={{ fontSize:"18px", marginBottom:"8px", fontWeight:"bold" }}>{f.title}</div>
+            <div style={{ fontSize:"14px", opacity:0.45, fontFamily:"sans-serif", lineHeight:1.6 }}>{f.desc}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ textAlign:"center", padding:"100px 24px" }}>
+        <h2 style={{ fontSize:"42px", fontWeight:"normal", fontStyle:"italic", marginBottom:"24px" }}>Ready to weave something?</h2>
+        <button onClick={onGetStarted} style={{ ...btnStyle("primary"), padding:"16px 40px" }}>Get Started →</button>
+      </div>
     </div>
   );
 }
@@ -63,7 +78,12 @@ function Landing({ onGetStarted }) {
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const handleSubmit = async () => { if (!email.includes("@")) return; setLoading(true); await sleep(1000); onLogin(); };
+  const handleSubmit = async () => {
+    if (!email.includes("@")) return;
+    setLoading(true);
+    await sleep(1000);
+    onLogin();
+  };
   return (
     <div style={{ minHeight:"100vh", background:"#0a0a0f", color:"#f0ede8", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Georgia,serif" }}>
       <div style={{ width:"100%", maxWidth:"400px", padding:"0 24px" }}>
@@ -93,13 +113,15 @@ function Plans({ plans, onSelect }) {
       <div style={{ textAlign:"center", marginBottom:"64px" }}>
         <div style={{ fontSize:"22px", fontWeight:"bold", marginBottom:"40px" }}>✦ <span style={{ color:"#f5c842" }}>Weave</span>AI</div>
         <h1 style={{ fontSize:"46px", fontWeight:"normal", fontStyle:"italic" }}>Choose your plan</h1>
+        <p style={{ opacity:0.45, fontSize:"16px", fontFamily:"sans-serif" }}>Unlock AI website generation. Cancel anytime.</p>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:"16px", maxWidth:"900px", margin:"0 auto 48px" }}>
         {plans.map(p => (
           <div key={p.id} onClick={() => setSelected(p.id)} style={{ border:selected===p.id?"1.5px solid #f5c842":"1px solid rgba(255,255,255,0.1)", borderRadius:"16px", padding:"36px 32px", cursor:"pointer", background:selected===p.id?"rgba(245,200,66,0.04)":"rgba(255,255,255,0.02)", position:"relative" }}>
             {p.id==="pro" && <div style={{ position:"absolute", top:"-12px", left:"50%", transform:"translateX(-50%)", background:"#f5c842", color:"#0a0a0f", borderRadius:"999px", padding:"4px 14px", fontSize:"11px", fontWeight:"bold" }}>MOST POPULAR</div>}
+            <div style={{ fontSize:"14px", opacity:0.5, fontFamily:"sans-serif", marginBottom:"8px" }}>{p.desc}</div>
             <div style={{ fontSize:"24px", marginBottom:"4px" }}>{p.name}</div>
-            <div style={{ marginBottom:"24px" }}><span style={{ fontSize:"48px", fontWeight:"bold" }}>${p.price}</span><span style={{ opacity:0.4, fontSize:"14px" }}>/mo</span></div>
+            <div style={{ marginBottom:"24px" }}><span style={{ fontSize:"48px", fontWeight:"bold" }}>${p.price}</span><span style={{ opacity:0.4, fontSize:"14px", fontFamily:"sans-serif" }}>/mo</span></div>
             <div style={{ display:"flex", flexDirection:"column", gap:"10px", fontFamily:"sans-serif", fontSize:"14px" }}>
               {[`${p.sites===999?"Unlimited":p.sites} websites/month`,"AI generation","Export code"].map(f => (
                 <div key={f} style={{ display:"flex", gap:"10px" }}><span style={{ color:"#f5c842" }}>✓</span><span style={{ opacity:0.7 }}>{f}</span></div>
@@ -130,28 +152,27 @@ function Builder({ user, plan, sitesLeft, onGenerate, onUpgrade }) {
     if (!prompt.trim()) return;
     if (sitesLeft <= 0) { setPaywalled(true); return; }
     setLoading(true); setResult(null); setPaywalled(false);
-    for (let i = 0; i < LOADING_MSGS.length; i++) { setLoadMsg(LOADING_MSGS[i]); await sleep(700); }
+
+    for (let i = 0; i < LOADING_MSGS.length; i++) {
+      setLoadMsg(LOADING_MSGS[i]);
+      await sleep(700);
+    }
+
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model: "llama3-70b-8192",
-          max_tokens: 4000,
-          messages: [
-            { role:"system", content:"You are an expert web developer. Return ONLY raw HTML code with embedded CSS and JS. No markdown, no explanation, no backticks." },
-            { role:"user", content:`Generate a complete single-file HTML website.\nType: ${type}\nDescription: ${prompt}\nMake it modern, beautiful, responsive with animations.` }
-          ]
-        })
+      const aiPrompt = `Generate a complete single-file HTML website. Type: ${type}. Description: ${prompt}. Requirements: single HTML file with embedded CSS and JS, modern beautiful design, responsive layout, realistic placeholder content, CSS animations. Return ONLY raw HTML code, nothing else.`;
+      
+      const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(aiPrompt)}`, {
+        method: "GET",
       });
-      const data = await response.json();
-      const html = data.choices?.[0]?.message?.content || "";
+
+      const html = await response.text();
       onGenerate();
-      setHistory(h => [{ prompt, type, html, ts:Date.now() }, ...h.slice(0,9)]);
+      setHistory(h => [{ prompt, type, html, ts: Date.now() }, ...h.slice(0, 9)]);
       setResult(html);
-    } catch(err) {
+    } catch (err) {
       setResult(`<html><body style="font-family:sans-serif;padding:40px;background:#0a0a0f;color:#f0ede8"><h2>⚠️ Generation failed</h2><p>Please try again.</p></body></html>`);
     }
+
     setLoading(false);
   };
 
@@ -166,6 +187,7 @@ function Builder({ user, plan, sitesLeft, onGenerate, onUpgrade }) {
           <button onClick={onUpgrade} style={{ ...btnStyle("outline"), padding:"6px 16px", fontSize:"13px" }}>Upgrade</button>
         </div>
       </header>
+
       <div style={{ display:"flex", flex:1, overflow:"hidden" }}>
         <aside style={{ width:"200px", borderRight:"1px solid rgba(255,255,255,0.07)", padding:"24px 16px", flexShrink:0, overflowY:"auto" }}>
           <div style={{ fontSize:"11px", opacity:0.35, letterSpacing:"1px", fontFamily:"sans-serif", marginBottom:"8px" }}>RECENT</div>
@@ -177,6 +199,7 @@ function Builder({ user, plan, sitesLeft, onGenerate, onUpgrade }) {
             </div>
           ))}
         </aside>
+
         <main style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
           <div style={{ padding:"24px 32px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
             <div style={{ display:"flex", gap:"8px", marginBottom:"12px", flexWrap:"wrap" }}>
@@ -187,10 +210,11 @@ function Builder({ user, plan, sitesLeft, onGenerate, onUpgrade }) {
             <div style={{ display:"flex", gap:"12px", alignItems:"flex-end" }}>
               <textarea placeholder={`Describe your ${type.toLowerCase()}…`} value={prompt} onChange={e => setPrompt(e.target.value)} rows={3} style={{ ...inputStyle, flex:1, resize:"none", lineHeight:1.5 }} />
               <button onClick={handleGenerate} disabled={loading||!prompt.trim()} style={{ ...btnStyle("primary"), padding:"12px 24px", whiteSpace:"nowrap", alignSelf:"stretch", opacity:(loading||!prompt.trim())?0.5:1 }}>
-                {loading?"⏳":"Generate ✦"}
+                {loading ? "⏳" : "Generate ✦"}
               </button>
             </div>
           </div>
+
           <div style={{ flex:1, position:"relative", overflow:"hidden" }}>
             {loading && (
               <div style={{ position:"absolute", inset:0, zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"rgba(10,10,15,0.92)" }}>
@@ -239,3 +263,4 @@ function btnStyle(variant) {
   if (variant==="ghost") return { ...base, background:"rgba(255,255,255,0.05)", color:"#f0ede8" };
   return base;
 }
+
